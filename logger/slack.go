@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"runtime"
 	"sync"
 	"time"
@@ -12,7 +13,9 @@ import (
 	"k8s.io/klog/v2"
 )
 
-type Slack struct {
+var _ iLogBackend = (*slackBackend)(nil)
+
+type slackBackend struct {
 	webhookUrl string
 	msgPrefix  string
 	httpClient *http.Client
@@ -20,7 +23,7 @@ type Slack struct {
 	mutex      sync.RWMutex
 }
 
-type SlackRequestBody struct {
+type slackRequestBody struct {
 	Text string `json:"text"`
 }
 
@@ -32,8 +35,8 @@ type message struct {
 	line  int
 }
 
-func NewSlack(stopCh chan struct{}, webhookUrl, msgPrefix string) *Slack {
-	s := &Slack{
+func NewSlackBackend(stopCh chan struct{}, webhookUrl, msgPrefix string) iLogBackend {
+	s := &slackBackend{
 		webhookUrl: webhookUrl,
 		msgPrefix:  msgPrefix,
 		httpClient: &http.Client{Timeout: 10 * time.Second},
@@ -46,20 +49,20 @@ func NewSlack(stopCh chan struct{}, webhookUrl, msgPrefix string) *Slack {
 	return s
 }
 
-func (s *Slack) InfoDepth(depth int, msg string) {
+func (s *slackBackend) InfoDepth(depth int, msg string) {
 	s.pushMessage(depth+1, "info", msg)
 
 }
 
-func (s *Slack) WarningDepth(depth int, msg string) {
+func (s *slackBackend) WarningDepth(depth int, msg string) {
 	s.pushMessage(depth+1, "warn", msg)
 }
 
-func (s *Slack) ErrorDepth(depth int, msg string) {
+func (s *slackBackend) ErrorDepth(depth int, msg string) {
 	s.pushMessage(depth+1, "error", msg)
 }
 
-func (s *Slack) pushMessage(depth int, level, msg string) {
+func (s *slackBackend) pushMessage(depth int, level, msg string) {
 	_, file, line, ok := runtime.Caller(depth)
 
 	if !ok {
@@ -67,12 +70,14 @@ func (s *Slack) pushMessage(depth int, level, msg string) {
 		line = 0
 	}
 
+	file = filepath.Base(file)
+
 	s.mutex.Lock()
 	s.pool = append(s.pool, message{level: level, msg: msg, time: time.Now(), file: file, line: line})
 	s.mutex.Unlock()
 }
 
-func (s *Slack) start(stopCh chan struct{}) {
+func (s *slackBackend) start(stopCh chan struct{}) {
 	go func() {
 		for {
 			select {
@@ -108,9 +113,9 @@ func (s *Slack) start(stopCh chan struct{}) {
 	}()
 }
 
-func (s *Slack) send(msg string) error {
+func (s *slackBackend) send(msg string) error {
 
-	slackBody, _ := json.Marshal(SlackRequestBody{Text: msg})
+	slackBody, _ := json.Marshal(slackRequestBody{Text: msg})
 	req, err := http.NewRequest(http.MethodPost, s.webhookUrl, bytes.NewBuffer(slackBody))
 
 	if err != nil {

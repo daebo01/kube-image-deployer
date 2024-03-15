@@ -136,12 +136,14 @@ func newClientset() *kubernetes.Clientset {
 }
 
 func newLogger(stopCh chan struct{}) *logger.Logger {
-	logger := logger.NewLogger()
+	l := logger.NewLogger()
 
 	if slackWebhook != "" {
-		logger.WithSlack(stopCh, slackWebhook, slackMsgPrefix)
+		slackBackend := logger.NewSlackBackend(stopCh, slackWebhook, slackMsgPrefix)
+		l.WithBackend(slackBackend)
 	}
-	return logger
+
+	return l
 }
 
 func main() {

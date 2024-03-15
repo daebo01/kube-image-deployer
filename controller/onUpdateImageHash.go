@@ -119,7 +119,7 @@ func (c *Controller) applyPatchList(key string, patchList []patch) error {
 		return fmt.Errorf("[%s] OnUpdateImageString patch apply error namespace=%s, name=%s, patchString=%s, err=%s", c.resource, namespace, name, patchString, err)
 	}
 
-	c.logger.Warningf("[%s] OnUpdateImageString patch apply success namespace=%s, name=%s, patchString=%s", c.resource, namespace, name, patchString)
+	c.logger.Warningf("[%s] OnUpdateImageString patch apply success namespace=%s, name=%s", c.resource, namespace, name)
 	return nil
 
 }

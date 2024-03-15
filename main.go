@@ -30,7 +30,8 @@ var (
 	controllerWatchNamespace = *flag.String("controller-watch-namespace", "", "controller watch namespace. If empty, watch all namespaces")
 	imageDefaultPlatform     = *flag.String("image-default-platform", "linux/amd64", "default platform for docker images")
 	slackWebhook             = *flag.String("slack-webhook", "", "slack webhook url. If empty, notifications are disabled")
-	slackMsgPrefix           = *flag.String("slack-msg-prefix", "["+getHostname()+"]", "slack message prefix. default=[hostname]")
+	googleChatWebhook        = *flag.String("google-chat-webhook", "", "google chat webhook url. If empty, notifications are disabled")
+	msgPrefix                = *flag.String("msg-prefix", getHostname(), "message prefix. default={hostname}")
 )
 
 func getHostname() string {
@@ -83,8 +84,11 @@ func init() {
 	if os.Getenv("SLACK_WEBHOOK") != "" {
 		slackWebhook = os.Getenv("SLACK_WEBHOOK")
 	}
-	if os.Getenv("SLACK_MSG_PREFIX") != "" {
-		slackMsgPrefix = os.Getenv("SLACK_MSG_PREFIX")
+	if os.Getenv("GOOGLE_CHAT_WEBHOOK") != "" {
+		googleChatWebhook = os.Getenv("GOOGLE_CHAT_WEBHOOK")
+	}
+	if os.Getenv("MSG_PREFIX") != "" {
+		msgPrefix = os.Getenv("MSG_PREFIX")
 	}
 
 	klog.Infof("Config Flags: %v", map[string]interface{}{
@@ -98,7 +102,8 @@ func init() {
 		"controllerWatchKey":       controllerWatchKey,
 		"controllerWatchNamespace": controllerWatchNamespace,
 		"slackWebhook":             slackWebhook,
-		"slackMsgPrefix":           slackMsgPrefix,
+		"googleChatWebhook":        googleChatWebhook,
+		"msgPrefix":                msgPrefix,
 	})
 }
 
@@ -139,8 +144,11 @@ func newLogger(stopCh chan struct{}) *logger.Logger {
 	l := logger.NewLogger()
 
 	if slackWebhook != "" {
-		slackBackend := logger.NewSlackBackend(stopCh, slackWebhook, slackMsgPrefix)
+		slackBackend := logger.NewSlackBackend(stopCh, slackWebhook, msgPrefix)
 		l.WithBackend(slackBackend)
+	} else if googleChatWebhook != "" {
+		googleChatBackend := logger.NewGoogleChatBackend(stopCh, googleChatWebhook, msgPrefix)
+		l.WithBackend(googleChatBackend)
 	}
 
 	return l

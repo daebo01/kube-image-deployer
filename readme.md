@@ -19,7 +19,8 @@ controllerWatchKey       = *flag.String("controller-watch-key", "kube-image-depl
 controllerWatchNamespace = *flag.String("controller-watch-namespace", "", "controller watch namespace. If empty, watch all namespaces")
 imageDefaultPlatform     = *flag.String("image-default-platform", "linux/amd64", "default platform for docker images")
 slackWebhook             = *flag.String("slack-webhook", "", "slack webhook url. If empty, notifications are disabled")
-slackMsgPrefix           = *flag.String("slack-msg-prefix", "[$hostname]", "slack message prefix. default=[hostname]")
+googleChatWebhook        = *flag.String("google-chat-webhook", "", "google chat webhook url. If empty, notifications are disabled")
+msgPrefix                = *flag.String("msg-prefix", "$hostname", "slack message prefix. default=hostname")
 ```
 
 # Available Environment Variables
@@ -36,7 +37,8 @@ CONTROLLER_WATCH_KEY=<kube-image-deployer>
 CONTROLLER_WATCH_NAMESPACE=<controller watch namespace. If empty, watch all namespaces>
 IMAGE_DEFAULT_PLATFORM=<default platform for docker images>
 SLACK_WEBHOOK=<slack webhook url. If empty, notifications are disabled>
-SLACK_MSG_PREFIX=<slack message prefix. default=[hostname]>
+GOOGLE_CHAT_WEBHOOK=<google chat webhook url. If empty, notifications are disabled>
+MSG_PREFIX=<webhook message prefix. default=hostname>
 ```
 
 # Functionality

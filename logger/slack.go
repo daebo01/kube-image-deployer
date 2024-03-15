@@ -36,6 +36,10 @@ type message struct {
 }
 
 func NewSlackBackend(stopCh chan struct{}, webhookUrl, msgPrefix string) iLogBackend {
+	if len(msgPrefix) > 0 {
+		msgPrefix = fmt.Sprintf("[%s]", msgPrefix)
+	}
+
 	s := &slackBackend{
 		webhookUrl: webhookUrl,
 		msgPrefix:  msgPrefix,

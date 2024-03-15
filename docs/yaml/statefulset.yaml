@@ -24,7 +24,7 @@ spec:
         - name: kube-image-deployer
           image: ghcr.io/pubg/kube-image-deployer:v0.1.2
           env:
-            - name: SLACK_MSG_PREFIX
+            - name: MSG_PREFIX
               value: '' # prefix for slack message
             - name: SLACK_WEBHOOK
               value: '' # your slack webhook url
